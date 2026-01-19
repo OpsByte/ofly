@@ -1,0 +1,33 @@
+name: Release
+
+on: workflow_dispatch
+    
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - id: tag
+      run: echo "RELEASE_NAME=v$(date -u -d @$(git log -1 --format=%ct) +"%y.%m.%d")+$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+    - uses: actions/setup-go@v4
+      with:
+        go-version-file: go.mod
+    - run: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o bin/ofly ./ofly
+    - run: CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags="-w -s" -o bin/ofly-darwin ./ofly
+    - run: CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-w -s" -o bin/ofly.exe ./ofly
+    - run: CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-w -s" -o bin/ofly-arm64 ./ofly
+    - run: CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags="-w -s" -o bin/ofly-darwin-arm64 ./ofly
+    - run: CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -ldflags="-w -s" -o bin/ofly-arm64.exe ./ofly
+    - uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.tag.outputs.RELEASE_NAME }}
+        files: |
+          bin/ofly
+          bin/ofly-darwin
+          bin/ofly.exe
+          bin/ofly-arm64
+          bin/ofly-darwin-arm64
+          bin/ofly-arm64.exe

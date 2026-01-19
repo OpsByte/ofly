@@ -1,0 +1,6 @@
+{
+	"name": "Go:ofly",
+	"image": "mcr.microsoft.com/devcontainers/go",
+	// To run wireshark for debugging
+	"capAdd": ["NET_ADMIN"]
+}
